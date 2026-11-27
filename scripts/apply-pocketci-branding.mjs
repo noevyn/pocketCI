@@ -137,7 +137,7 @@ await replaceOnce(
 await renameThemeSymbols(path.join(upstream, "app/src/main/java"));
 
 await writeFile(
-  path.join(upstream, "app/src/main/java/io/github/m96chan/droidrunner/ui/BtopTheme.kt"),
+  path.join(upstream, "app/src/main/java/io/github/m96chan/droidrunner/ui/theme/BtopTheme.kt"),
   `package io.github.m96chan.droidrunner.ui.theme
 
 import androidx.compose.material3.MaterialTheme
@@ -262,16 +262,16 @@ await replaceOnce(
         )`,
   );
   source = source.replace(
-    `            Link("project source") { open(PROJECT_URL) }
-            // Upstream at the pinned commit, which is still worth having: it
-            // is where the history and the issue tracker are. It is not the
-            // source offer — that is the archive above, on our own release.
-            Link("proot source") { open("$PROOT_URL/tree/${BuildConfig.PROOT_COMMIT}") }
-            Link("report an issue") { open("$PROJECT_URL/issues/new") }`,
-    `            Link("project source") { open(BuildConfig.POCKETCI_SOURCE_URL) }
-            Link("upstream source") { open("$UPSTREAM_URL/tree/${BuildConfig.GIT_COMMIT}") }
-            Link("proot source") { open("$PROOT_URL/tree/${BuildConfig.PROOT_COMMIT}") }
-            Link("report an issue") { open("${BuildConfig.POCKETCI_SOURCE_URL}/issues/new") }`,
+    '            Link("project source") { open(PROJECT_URL) }',
+    '            Link("project source") { open(BuildConfig.POCKETCI_SOURCE_URL) }',
+  );
+  source = source.replace(
+    '            Link("proot source") { open("$PROOT_URL/tree/${BuildConfig.PROOT_COMMIT}") }',
+    '            Link("proot source") { open("$PROOT_URL/tree/${BuildConfig.PROOT_COMMIT}") }\\n            Link("upstream source") { open("$UPSTREAM_URL/tree/${BuildConfig.GIT_COMMIT}") }',
+  );
+  source = source.replace(
+    '            Link("report an issue") { open("$PROJECT_URL/issues/new") }',
+    '            Link("report an issue") { open("${BuildConfig.POCKETCI_SOURCE_URL}/issues/new") }',
   );
   source = source.replace(
     "internal fun sourceOffer(versionName: String, prootCommit: String, gitCommit: String): SourceOffer {",
