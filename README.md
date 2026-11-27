@@ -14,15 +14,24 @@ PocketCI pins [DroidRunner](https://github.com/m96-chan/DroidRunner) as a Git su
 
 - Keep upstream runner lifecycle, credential handling, resource admission, and watchdog behavior intact.
 - Add multi-project management and a restricted remote job interface.
-- Add an Atlas verification profile that runs the existing project scripts.
+- Add an Atlas verification profile that runs existing project scripts.
 - Provide job status, logs, cancellation, and audit history.
 - Keep untrusted pull-request code away from privileged credentials.
 
-## Status
+## Current status
 
-**Source is pinned, but PocketCI is not yet a built or tested Android app.** The repository contains a manual Android self-hosted-runner smoke workflow and a script that verifies the pinned upstream source and required build entry points. That workflow still needs a registered Android runner to execute.
+- [x] Public GitHub repository.
+- [x] Pinned DroidRunner source and documented GPL-2.0 provenance.
+- [x] Android phone registered as a repository-scoped self-hosted runner.
+- [x] First phone-hosted GitHub Actions smoke test passed: checkout, submodule verification, and environment inspection.
+- [x] Android build-capacity preflight passed: 34 GB free in the runner filesystem and 7.5 GiB reported memory.
+- [ ] Build and unit-test the upstream baseline APK.
+- [ ] Create and test a separate PocketCI-branded APK.
+- [ ] Implement the PocketCI project/job control layer.
 
-See [UPSTREAM.md](UPSTREAM.md) for attribution and licensing details.
+The baseline APK build runs on a standard GitHub-hosted Linux runner because the Android runner's PRoot environment does not include the Android build toolchain. The phone remains the real-device runner for device-specific CI. Standard GitHub-hosted runners are free for public repositories; see [GitHub Actions billing](https://docs.github.com/en/actions/concepts/billing-and-usage).
+
+See [UPSTREAM.md](UPSTREAM.md) for attribution and licensing details, [docs/POCKETCI_ARCHITECTURE.md](docs/POCKETCI_ARCHITECTURE.md) for the implementation sequence, and [docs/ANDROID_RUNNER_SETUP.md](docs/ANDROID_RUNNER_SETUP.md) for device setup.
 
 ## Why self-hosted?
 
