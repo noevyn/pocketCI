@@ -8,10 +8,20 @@ permissions:
 
 jobs:
   smoke:
-    name: Verify Android runner environment
+    name: Verify Android runner environment and upstream pin
     runs-on: [self-hosted, android, arm64]
     timeout-minutes: 10
     steps:
+      - name: Check out PocketCI and pinned DroidRunner source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify upstream source and license
+        shell: bash
+        run: bash scripts/verify-upstream-pin.sh
+
       - name: Inspect runner
         shell: bash
         run: |
