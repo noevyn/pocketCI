@@ -50,12 +50,23 @@ jobs:
           POCKETCI_GITHUB_APP_CLIENT_ID: ${{ vars.POCKETCI_GITHUB_APP_CLIENT_ID }}
           POCKETCI_GITHUB_APP_SLUG: ${{ vars.POCKETCI_GITHUB_APP_SLUG }}
         run: |
-          ./gradlew --no-daemon \
-            -Ppocketci.githubAppClientId="$POCKETCI_GITHUB_APP_CLIENT_ID" \
-            -Ppocketci.githubAppSlug="$POCKETCI_GITHUB_APP_SLUG" \
-            -Ppocketci.sourceUrl="https://github.com/noevyn/pocketCI" \
-            -Ppocketci.sourceCommit="$GITHUB_SHA" \
-            testDebugUnitTest assembleDebug
+          set -o pipefail
+          gradle_args=(
+            "-Ppocketci.githubAppClientId=$POCKETCI_GITHUB_APP_CLIENT_ID"
+            "-Ppocketci.githubAppSlug=$POCKETCI_GITHUB_APP_SLUG"
+            "-Ppocketci.sourceUrl=https://github.com/noevyn/pocketCI"
+            "-Ppocketci.sourceCommit=$GITHUB_SHA"
+          )
+          log_file="$RUNNER_TEMP/pocketci-gradle-build.log"
+          if ./gradlew --no-daemon --stacktrace "${gradle_args[@]}" testDebugUnitTest assembleDebug 2>&1 | tee "$log_file"; then
+            exit 0
+          fi
+          if grep -q "Plugin .* was not found" "$log_file"; then
+            echo "A Gradle plugin could not be resolved; retrying once with refreshed dependency metadata."
+            ./gradlew --no-daemon --refresh-dependencies --stacktrace "${gradle_args[@]}" testDebugUnitTest assembleDebug
+          else
+            exit 1
+          fi
 
       - name: Upload PocketCI debug APK
         uses: actions/upload-artifact@v7
