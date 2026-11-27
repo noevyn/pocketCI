@@ -6,10 +6,11 @@ This workflow runs the existing Atlas checks from the private `NoevynHQ/Noevyn` 
 
 1. Checks out the PocketCI workflow repository.
 2. Checks out `NoevynHQ/Noevyn` at `main` using a read-only repository token.
-3. Installs the exact root workspace lockfile with `npm ci`.
-4. Runs the existing production dependency audit.
-5. Runs Atlas TypeScript and ESLint checks.
-6. Runs Atlas's existing `test` script, which performs the bounded production build and then runs the Atlas Node tests.
+3. Installs `build-essential`, Python 3, and pkg-config inside the isolated Ubuntu PRoot image if they are missing. The runner operates as root inside PRoot; this does not install packages on Android itself.
+4. Installs the exact root workspace lockfile with `npm ci`.
+5. Runs the existing production dependency audit.
+6. Runs Atlas TypeScript and ESLint checks.
+7. Runs Atlas's existing `test` script, which performs the bounded production build and then runs the Atlas Node tests.
 
 It does not run database migrations, write to Cloudflare, deploy, or access production customer records. The current Atlas tests use an in-memory SQLite database for migration assertions and inspect the generated local build output.
 

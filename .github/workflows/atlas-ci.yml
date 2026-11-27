@@ -58,6 +58,15 @@ jobs:
           df -h "$HOME" "$GITHUB_WORKSPACE"
           free -h || grep -E 'MemTotal|MemAvailable|SwapTotal|SwapFree' /proc/meminfo || true
 
+      - name: Install native build prerequisites in the isolated PRoot image
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v python3 >/dev/null 2>&1 || ! command -v make >/dev/null 2>&1 || ! command -v g++ >/dev/null 2>&1; then
+            apt-get update -qq
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential python3 pkg-config
+          fi
+
       - name: Install locked monorepo dependencies
         working-directory: noevyn
         env:
