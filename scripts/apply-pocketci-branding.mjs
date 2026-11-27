@@ -75,7 +75,7 @@ async function rebrandStringLiterals(directory) {
       const remaining = (updated.match(/"[^"\n]*DroidRunner[^"\n]*"/g) ?? [])
         .filter((literal) => !literal.includes("https://github.com/m96-chan/DroidRunner"));
       if (remaining.length) {
-        throw new Error(\`\${file}: unbranded product strings remain: \${remaining.join(", ")}\`);
+        throw new Error(file + ": unbranded product strings remain: " + remaining.join(", "));
       }
       if (updated !== source) await writeFile(file, updated);
     }
