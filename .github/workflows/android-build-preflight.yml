@@ -1,9 +1,6 @@
 name: Android build environment preflight
 
 on:
-  push:
-    branches:
-      - pocketci/implementation-plan
   workflow_dispatch:
 
 permissions:
