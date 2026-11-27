@@ -1,0 +1,93 @@
+name: Atlas CI on Android
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pocketci-atlas-ci
+  cancel-in-progress: true
+
+jobs:
+  atlas:
+    name: Atlas checks on Android ARM64
+    runs-on: [self-hosted, android, arm64]
+    timeout-minutes: 60
+    steps:
+      - name: Check out PocketCI control repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Require private repository read token
+        shell: bash
+        env:
+          PRIVATE_REPO_TOKEN: ${{ secrets.NOEVYN_REPO_READ_TOKEN }}
+        run: |
+          if [ -z "$PRIVATE_REPO_TOKEN" ]; then
+            echo "::error::Add the NOEVYN_REPO_READ_TOKEN repository secret. It must have Contents: read access to NoevynHQ/Noevyn only."
+            exit 1
+          fi
+
+      - name: Check out private Noevyn monorepo
+        uses: actions/checkout@v7
+        with:
+          repository: NoevynHQ/Noevyn
+          ref: main
+          token: ${{ secrets.NOEVYN_REPO_READ_TOKEN }}
+          path: noevyn
+          persist-credentials: false
+          submodules: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: noevyn/package-lock.json
+
+      - name: Report isolated runner environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --version
+          npm --version
+          uname -m
+          df -h "$HOME" "$GITHUB_WORKSPACE"
+          free -h || grep -E 'MemTotal|MemAvailable|SwapTotal|SwapFree' /proc/meminfo || true
+
+      - name: Install native build prerequisites in the isolated PRoot image
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v python3 >/dev/null 2>&1 || ! command -v make >/dev/null 2>&1 || ! command -v g++ >/dev/null 2>&1; then
+            apt-get update -qq
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential python3 pkg-config
+          fi
+
+      - name: Install locked monorepo dependencies
+        working-directory: noevyn
+        env:
+          NPM_CONFIG_MAXSOCKETS: "1"
+          NPM_CONFIG_FETCH_RETRIES: "0"
+          NPM_CONFIG_AUDIT: "false"
+          NPM_CONFIG_FUND: "false"
+        run: npm ci
+
+      - name: Audit production dependencies
+        working-directory: noevyn
+        run: npm run audit:production
+
+      - name: Type-check and lint Atlas
+        working-directory: noevyn
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: npm --workspace @noevyn/atlas run check
+
+      - name: Build Atlas and run Atlas tests
+        working-directory: noevyn
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: npm --workspace @noevyn/atlas test

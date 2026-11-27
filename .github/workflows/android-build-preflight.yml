@@ -1,0 +1,68 @@
+name: Android build environment preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Inspect Android build capacity
+    runs-on: [self-hosted, android, arm64]
+    timeout-minutes: 8
+    steps:
+      - name: Check out pinned source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Report build prerequisites without installing anything
+        shell: bash
+        run: |
+          set -u
+          echo "=== Device and OS ==="
+          uname -a
+          getprop ro.build.version.release 2>/dev/null || true
+          getprop ro.product.model 2>/dev/null || true
+          echo
+          echo "=== Available storage ==="
+          df -h "$HOME" "$PWD" 2>/dev/null || df -h
+          echo
+          echo "=== Memory ==="
+          if command -v free >/dev/null 2>&1; then free -h; else grep -E 'MemTotal|MemAvailable|SwapTotal|SwapFree' /proc/meminfo || true; fi
+          echo
+          echo "=== Build tools ==="
+          for tool in java javac git curl unzip tar make cmake ninja python3; do
+            if command -v "$tool" >/dev/null 2>&1; then
+              printf '%s: ' "$tool"
+              "$tool" --version 2>&1 | head -n 1 || true
+            else
+              echo "$tool: MISSING"
+            fi
+          done
+          echo
+          echo "=== Android SDK / NDK ==="
+          printf 'ANDROID_HOME=%s\n' "${ANDROID_HOME:-unset}"
+          printf 'ANDROID_SDK_ROOT=%s\n' "${ANDROID_SDK_ROOT:-unset}"
+          for path in "${ANDROID_HOME:-/nonexistent}" "${ANDROID_SDK_ROOT:-/nonexistent}" "$HOME/Android/Sdk"; do
+            if [ -d "$path" ]; then du -sh "$path" 2>/dev/null || true; fi
+          done
+          echo
+          echo "=== Source build requirements ==="
+          grep -E 'distributionUrl=' upstream/DroidRunner/gradle/wrapper/gradle-wrapper.properties || true
+          grep -E 'AGP|com.android.application|kotlin' upstream/DroidRunner/build.gradle.kts upstream/DroidRunner/settings.gradle.kts || true
+          echo
+          echo "=== PRoot build dependencies ==="
+          for tool in clang llvm-ar llvm-ranlib pkg-config; do
+            command -v "$tool" || echo "$tool: MISSING"
+          done
+          echo
+          echo "=== Disk gate ==="
+          available_kb="$(df -Pk "$HOME" | awk 'NR==2 {print $4}')"
+          if [ "${available_kb:-0}" -ge 8388608 ]; then
+            echo "PASS: at least 8 GiB available for SDK/NDK and build caches"
+          else
+            echo "INFO: less than 8 GiB available; do not attempt a full Android SDK/NDK install yet"
+          fi

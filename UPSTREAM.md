@@ -1,6 +1,6 @@
-# Upstream
+# Upstream and licensing
 
-PocketCI currently links **DroidRunner** as a Git submodule at `upstream/DroidRunner`.
+PocketCI is a GPL-2.0-only derivative built around **DroidRunner** as a Git submodule at `upstream/DroidRunner`.
 
 - Upstream: https://github.com/m96-chan/DroidRunner
 - Upstream project license: GPL-2.0-only
@@ -8,25 +8,45 @@ PocketCI currently links **DroidRunner** as a Git submodule at `upstream/DroidRu
 - Submodule path: `upstream/DroidRunner`
 - Submodule URL: `https://github.com/m96-chan/DroidRunner.git`
 
+## How the derivative is maintained
+
+The upstream submodule is kept at its pinned revision. `scripts/apply-pocketci-branding.mjs` applies a deterministic overlay during the APK build. It refuses to patch an unexpected upstream revision.
+
+The overlay currently:
+- Gives the app its own Android application ID: `com.noevyn.pocketci`.
+- Applies PocketCI's label, adaptive icon, dark teal palette, and sans-serif typography.
+- Rebrands product-facing status and setup messages and the HTTP User-Agent.
+- Separates the app's credential-store alias.
+- Adds PocketCI source attribution while retaining an explicit link to the pinned upstream source.
+- Uses PocketCI-specific Gradle properties. The upstream GitHub App client ID and slug are intentionally not reused.
+- Temporarily downloads the signed Linux runtime from the upstream DroidRunner release repository using the upstream public manifest-verification key.
+
+This is a patch-overlay derivative, not a GitHub-native fork. The source archive for any public release must include the complete pinned upstream source, the PocketCI overlay, build scripts, and required third-party notices.
+
 ## Licensing and attribution
 
-A distributed derivative must retain upstream copyright and license notices, provide corresponding source under GPL-2.0, and preserve notices for bundled components. Bundled components have their own licenses; consult their manifests and notices before redistributing an APK.
+PocketCI is distributed under GPL-2.0-only. A distributed derivative must retain upstream copyright and license notices, provide the corresponding source, and preserve notices for bundled components. The root `LICENSE` contains the GPL-2.0 text. Consult upstream and third-party license manifests before redistributing an APK or runtime bundle.
 
-The submodule arrangement keeps upstream history and attribution separate. It is not a GitHub-native fork and no PocketCI patches have yet been applied inside the Android app source.
+## Verified implementation status
 
-## Current implementation status
-
+- [x] Public PocketCI repository.
 - [x] Pin the upstream source revision as a submodule.
-- [x] Add a script to verify the pinned revision and required build files.
-- [x] Add a manual GitHub Actions smoke workflow targeting the `self-hosted, android, arm64` labels.
-- [ ] Register a DroidRunner device against `noevyn/pocketCI` and execute the smoke workflow.
-- [ ] Build and install a PocketCI-branded APK with its own package identity and stable signing key.
-- [ ] Implement the remote job/control bridge and project isolation.
+- [x] Add deterministic source-pin verification.
+- [x] Register the Android phone as a repository-scoped runner.
+- [x] Execute a successful phone-hosted GitHub Actions smoke test.
+- [x] Build and unit-test the unmodified upstream baseline.
+- [x] Apply the PocketCI identity overlay and build a debug APK.
+- [x] Verify the APK manifest package and app label.
+- [ ] Create PocketCI's own GitHub App and configure its public Client ID and slug.
+- [ ] Install the debug APK and validate runtime setup and runner registration on-device.
+- [ ] Create a stable APK signing key and a complete GPL source archive before release.
+- [ ] Replace the temporary upstream runtime repository/key with PocketCI-owned runtime releases.
+- [ ] Implement the authenticated assistant control bridge and per-project isolation.
 
 ## Planned PocketCI additions
 
-1. Keep the upstream runner, credential protection, resource admission, and watchdog behavior intact.
-2. Add a constrained remote job/control bridge for authorized PocketCI operators.
-3. Add a dedicated Atlas verification profile that invokes existing repository scripts rather than embedding Atlas-specific assumptions in the Android runner.
-4. Add per-project isolation, scoped credentials, job logs, cancellation, and audit records.
-5. Never execute untrusted pull-request code with privileged credentials; use explicit trust policy and isolated workspaces.
+1. Preserve upstream runner lifecycle, credential protection, resource admission, and watchdog behavior.
+2. Add multi-project management and a restricted remote job/control bridge.
+3. Run approved Atlas verification profiles using the existing monorepo scripts.
+4. Add job status, logs, cancellation, project isolation, scoped credentials, and audit records.
+5. Never execute untrusted pull-request code with privileged credentials.
