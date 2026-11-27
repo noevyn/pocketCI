@@ -68,10 +68,15 @@ async function rebrandStringLiterals(directory) {
       await rebrandStringLiterals(file);
     } else if (entry.isFile() && entry.name.endsWith(".kt")) {
       const source = await readFile(file, "utf8");
-      const updated = source.replace(/"([^"\\n]*)"/g, (literal) => {
+      const updated = source.replace(/"([^"\n]*)"/g, (literal) => {
         if (literal.includes("https://github.com/m96-chan/DroidRunner")) return literal;
         return literal.replaceAll("DroidRunner", "PocketCI");
       });
+      const remaining = (updated.match(/"[^"\n]*DroidRunner[^"\n]*"/g) ?? [])
+        .filter((literal) => !literal.includes("https://github.com/m96-chan/DroidRunner"));
+      if (remaining.length) {
+        throw new Error(\`\${file}: unbranded product strings remain: \${remaining.join(", ")}\`);
+      }
       if (updated !== source) await writeFile(file, updated);
     }
   }
