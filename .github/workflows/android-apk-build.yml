@@ -1,0 +1,56 @@
+name: Build DroidRunner baseline on hosted Linux
+
+on:
+  push:
+    branches:
+      - pocketci/implementation-plan
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pocketci-android-apk-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Unit tests and debug APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out PocketCI and pinned DroidRunner source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build PRoot native libraries
+        working-directory: upstream/DroidRunner
+        env:
+          ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_LATEST_HOME }}
+        run: runtime/build-proot.sh
+
+      - name: Run unit tests and assemble debug APK
+        working-directory: upstream/DroidRunner
+        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug
+
+      - name: Upload baseline debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketci-upstream-baseline-debug
+          path: upstream/DroidRunner/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
