@@ -60,6 +60,23 @@ async function renameThemeSymbols(directory) {
   }
 }
 
+
+async function rebrandStringLiterals(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      await rebrandStringLiterals(file);
+    } else if (entry.isFile() && entry.name.endsWith(".kt")) {
+      const source = await readFile(file, "utf8");
+      const updated = source.replace(/"([^"\\n]*)"/g, (literal) => {
+        if (literal.includes("https://github.com/m96-chan/DroidRunner")) return literal;
+        return literal.replaceAll("DroidRunner", "PocketCI");
+      });
+      if (updated !== source) await writeFile(file, updated);
+    }
+  }
+}
+
 // Keep the upstream package namespace so internal class references remain
 // stable, but give PocketCI its own install identity so both apps can coexist.
 await replaceOnce(
@@ -254,6 +271,8 @@ await replaceOnce(
   "The PocketCI GitHub App is not installed on any repository you can manage.",
 );
 
+await rebrandStringLiterals(path.join(upstream, "app/src/main/java"));
+
 // PocketCI's own source offer plus an explicit upstream attribution link.
 {
   const file = path.join(upstream, "app/src/main/java/io/github/m96chan/droidrunner/ui/AboutPanel.kt");
@@ -284,6 +303,10 @@ await replaceOnce(
   source = source.replace(
     "internal fun sourceOffer(versionName: String, prootCommit: String, gitCommit: String): SourceOffer {",
     "internal fun sourceOffer(versionName: String, prootCommit: String, gitCommit: String, projectUrl: String = PROJECT_URL): SourceOffer {",
+  );
+  source = source.replace(
+    'url = if (gitCommit.isEmpty()) PROJECT_URL else "$projectUrl/tree/$gitCommit"',
+    'url = if (gitCommit.isEmpty()) projectUrl else "$projectUrl/tree/$gitCommit"',
   );
   source = source
     .replaceAll("droidrunner-", "pocketci-")

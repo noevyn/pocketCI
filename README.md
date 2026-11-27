@@ -1,42 +1,54 @@
 # PocketCI
 
-PocketCI is an open-source project to run GitHub Actions jobs on Android ARM64 devices, with a future remote control layer for project-specific CI tasks.
+PocketCI is an open-source project to run GitHub Actions jobs on Android ARM64 devices, with a planned assistant-controlled layer for approved project CI tasks.
 
 ## Foundation
 
-PocketCI pins [DroidRunner](https://github.com/m96-chan/DroidRunner) as a Git submodule at `upstream/DroidRunner`. This preserves the upstream project as a separately attributable source dependency while we develop PocketCI-specific changes around it.
+PocketCI pins [DroidRunner](https://github.com/m96-chan/DroidRunner) as a Git submodule at `upstream/DroidRunner`, currently pinned to `5126eacf2855a252d38121238d787eacec6f3965`. A deterministic build-time overlay applies PocketCI's app identity and branding without rewriting the upstream submodule history.
 
-- Upstream pin: `5126eacf2855a252d38121238d787eacec6f3965`
 - Upstream license: GPL-2.0-only
-- Submodule setup: `git clone --recurse-submodules https://github.com/noevyn/pocketCI.git`
+- PocketCI license: GPL-2.0-only
+- Clone with submodules: `git clone --recurse-submodules https://github.com/noevyn/pocketCI.git`
 
-## PocketCI additions
-
-- Keep upstream runner lifecycle, credential handling, resource admission, and watchdog behavior intact.
-- Add multi-project management and a restricted remote job interface.
-- Add an Atlas verification profile that runs existing project scripts.
-- Provide job status, logs, cancellation, and audit history.
-- Keep untrusted pull-request code away from privileged credentials.
-
-## Current status
+## Verified status
 
 - [x] Public GitHub repository.
-- [x] Pinned DroidRunner source and documented GPL-2.0 provenance.
 - [x] Android phone registered as a repository-scoped self-hosted runner.
-- [x] First phone-hosted GitHub Actions smoke test passed: checkout, submodule verification, and environment inspection.
-- [x] Android build-capacity preflight passed: 34 GB free in the runner filesystem and 7.5 GiB reported memory.
-- [ ] Build and unit-test the upstream baseline APK.
-- [ ] Create and test a separate PocketCI-branded APK.
-- [ ] Implement the PocketCI project/job control layer.
+- [x] Phone-hosted GitHub Actions smoke test passed.
+- [x] Unmodified upstream baseline APK built and unit-tested.
+- [x] PocketCI overlay applied and compiled.
+- [x] PocketCI unit tests passed.
+- [x] APK manifest verified as package `com.noevyn.pocketci`, label `PocketCI`.
+- [ ] Create and configure PocketCI's own GitHub App identity.
+- [ ] Install the PocketCI debug APK on the phone and verify runtime setup and runner registration.
+- [ ] Create a stable release-signing key and reproducible GPL source archive.
+- [ ] Complete the Atlas CI profile's read-only private-repository access setup.
+- [ ] Implement the authenticated assistant-to-runner control bridge.
 
-The baseline APK build runs on a standard GitHub-hosted Linux runner because the Android runner's PRoot environment does not include the Android build toolchain. The phone remains the real-device runner for device-specific CI. Standard GitHub-hosted runners are free for public repositories; see [GitHub Actions billing](https://docs.github.com/en/actions/concepts/billing-and-usage).
+**Latest successful PocketCI debug build:** [Run #46067595848](https://github.com/noevyn/pocketCI/actions/runs/46067595848). The [debug APK artifact](https://github.com/noevyn/pocketCI/actions/runs/46067595848/artifacts/15231198521) is retained for seven days.
 
-See [UPSTREAM.md](UPSTREAM.md) for attribution and licensing details, [docs/POCKETCI_ARCHITECTURE.md](docs/POCKETCI_ARCHITECTURE.md) for the implementation sequence, and [docs/ANDROID_RUNNER_SETUP.md](docs/ANDROID_RUNNER_SETUP.md) for device setup.
+The APK is debug-signed and intended for isolated testing, not public release. It uses its own package ID, so it can be installed alongside the upstream DroidRunner app without replacing it. Do not treat the current build as connected until the PocketCI GitHub App is configured; see [GitHub App setup](docs/GITHUB_APP_SETUP.md).
 
-## Why self-hosted?
+## Build and device roles
 
-GitHub Actions schedules the workflow, but the connected Android device supplies the job compute. Self-hosting does not bypass GitHub's API, repository, permission, or billing rules.
+- Standard GitHub-hosted Linux runners build the Android APK. Standard hosted runners are free for public repositories.
+- The connected Android phone supplies self-hosted job compute for device-side CI.
+- The current Android runner labels are `self-hosted`, `android`, and `arm64`.
+
+The successful smoke test proves GitHub Actions can schedule and execute jobs on the phone. It does not mean ChatGPT can directly control the phone yet; the secure assistant control bridge is a later phase.
+
+## Atlas CI
+
+A manual-only Atlas profile is being prepared to run the existing Atlas workspace checks on the Android runner. Because the PocketCI repository is public and the Noevyn monorepo is private, that workflow requires a narrowly scoped read-only token. See [Atlas CI profile](docs/ATLAS_CI_PROFILE.md).
+
+## Project documents
+
+- [Architecture and implementation phases](docs/POCKETCI_ARCHITECTURE.md)
+- [Android runner setup](docs/ANDROID_RUNNER_SETUP.md)
+- [PocketCI GitHub App setup](docs/GITHUB_APP_SETUP.md)
+- [Release signing and source obligations](docs/RELEASE_SIGNING.md)
+- [Upstream attribution and licensing](UPSTREAM.md)
 
 ## License
 
-Any distributed derivative must comply with DroidRunner's GPL-2.0-only license and preserve third-party notices. See [UPSTREAM.md](UPSTREAM.md) before redistributing source or binaries.
+PocketCI is distributed under GPL-2.0-only. See [LICENSE](LICENSE) and [UPSTREAM.md](UPSTREAM.md).

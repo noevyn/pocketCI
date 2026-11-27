@@ -29,13 +29,16 @@ The first verified device is the Android phone registered as the self-hosted run
 - [x] Pinned DroidRunner upstream source and license notes.
 - [x] Repo-scoped Android runner connected.
 - [x] First smoke workflow passed on the phone.
-- [ ] Record actual build-tool and free-storage capacity.
+- [x] Record device capacity: 34 GB free in the runner filesystem and 7.5 GiB reported memory.
+- [x] Build and unit-test the upstream baseline on a standard hosted Linux runner.
+- [x] Apply the PocketCI overlay and build a separate debug APK; manifest identity verified.
 
 ### Phase 1 — reproducible PocketCI build
-- [ ] Confirm device storage, Java, Android SDK/NDK and native build prerequisites.
-- [ ] Establish a repeatable build workflow on the phone without modifying the working installed DroidRunner app.
-- [ ] Create a separate PocketCI application identity only after auditing OAuth callback, GitHub App registration, runtime signing keys and upgrade/signing implications.
-- [ ] Produce and install a debug APK side-by-side with upstream for isolated testing.
+- [x] Confirm device capacity and establish a repeatable hosted Linux Android build.
+- [x] Create a separate PocketCI application identity and debug APK; it can coexist with upstream DroidRunner.
+- [ ] Create PocketCI's own GitHub App identity and configure the Client ID and slug.
+- [ ] Install the debug APK side-by-side and validate runtime setup and runner registration.
+- [ ] Create a stable APK signing key and complete source archive before public release.
 
 ### Phase 2 — PocketCI experience
 - [ ] Product name, icon, onboarding and repository connection.
@@ -57,3 +60,10 @@ The first verified device is the Android phone registered as the self-hosted run
 - Do not execute untrusted pull-request code on a runner that has repository secrets.
 - Do not replace the existing upstream installation or its signing identity during early development.
 - Do not treat a green smoke test as proof that an APK has been built or that Atlas CI is ready.
+
+
+## Current build split
+
+The Android phone is the self-hosted Actions worker for device-side CI. APK compilation runs on a standard GitHub-hosted Linux runner because the phone's PRoot image does not include the Android build toolchain. PocketCI is public, so standard hosted runner compute is free for this repository.
+
+The current PocketCI APK uses a separate package ID but has no PocketCI GitHub App Client ID/slug compiled in yet. The original DroidRunner GitHub App identity is deliberately not reused. The assistant control bridge is also not implemented yet.
