@@ -1,0 +1,3 @@
+[submodule "upstream/DroidRunner"]
+	path = upstream/DroidRunner
+	url = https://github.com/m96-chan/DroidRunner.git
