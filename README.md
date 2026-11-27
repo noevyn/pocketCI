@@ -14,7 +14,7 @@ PocketCI pins [DroidRunner](https://github.com/m96-chan/DroidRunner) as a Git su
 
 - [x] Public GitHub repository.
 - [x] Android phone registered as a repository-scoped self-hosted runner.
-- [x] Phone-hosted GitHub Actions smoke test passed.
+- [x] [Phone-hosted GitHub Actions smoke test passed](https://github.com/noevyn/pocketCI/actions/runs/46065279190).
 - [x] Unmodified upstream baseline APK built and unit-tested.
 - [x] PocketCI overlay applied and compiled.
 - [x] PocketCI unit tests passed.
