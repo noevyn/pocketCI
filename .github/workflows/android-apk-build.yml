@@ -1,4 +1,4 @@
-name: Build DroidRunner baseline on hosted Linux
+name: Build PocketCI Android app
 
 on:
   push:
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: Unit tests and debug APK
+    name: Unit tests and PocketCI debug APK
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -37,18 +37,30 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      - name: Apply PocketCI identity and branding overlay
+        run: node scripts/apply-pocketci-branding.mjs
+
       - name: Build PRoot native libraries
         working-directory: upstream/DroidRunner
         run: ANDROID_NDK_ROOT="$ANDROID_NDK_LATEST_HOME" runtime/build-proot.sh
 
-      - name: Run unit tests and assemble debug APK
+      - name: Run unit tests and assemble PocketCI debug APK
         working-directory: upstream/DroidRunner
-        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug
+        env:
+          POCKETCI_GITHUB_APP_CLIENT_ID: ${{ vars.POCKETCI_GITHUB_APP_CLIENT_ID }}
+          POCKETCI_GITHUB_APP_SLUG: ${{ vars.POCKETCI_GITHUB_APP_SLUG }}
+        run: |
+          ./gradlew --no-daemon \
+            -Ppocketci.githubAppClientId="$POCKETCI_GITHUB_APP_CLIENT_ID" \
+            -Ppocketci.githubAppSlug="$POCKETCI_GITHUB_APP_SLUG" \
+            -Ppocketci.sourceUrl="https://github.com/noevyn/pocketCI" \
+            -Ppocketci.sourceCommit="$GITHUB_SHA" \
+            testDebugUnitTest assembleDebug
 
-      - name: Upload baseline debug APK
+      - name: Upload PocketCI debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: pocketci-upstream-baseline-debug
+          name: pocketci-debug-apk
           path: upstream/DroidRunner/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
