@@ -39,9 +39,7 @@ jobs:
 
       - name: Build PRoot native libraries
         working-directory: upstream/DroidRunner
-        env:
-          ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_LATEST_HOME }}
-        run: runtime/build-proot.sh
+        run: ANDROID_NDK_ROOT="$ANDROID_NDK_LATEST_HOME" runtime/build-proot.sh
 
       - name: Run unit tests and assemble debug APK
         working-directory: upstream/DroidRunner
