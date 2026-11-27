@@ -1,0 +1,36 @@
+name: Android self-hosted runner smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Verify Android runner environment
+    runs-on: [self-hosted, android, arm64]
+    timeout-minutes: 10
+    steps:
+      - name: Inspect runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== PocketCI Android runner smoke test ==="
+          echo "Kernel: $(uname -a)"
+          echo "Architecture: $(uname -m)"
+          echo "User: $(id)"
+          echo "Working directory: $PWD"
+          echo
+          echo "=== Toolchain ==="
+          git --version
+          if command -v node >/dev/null 2>&1; then node --version; else echo "Node.js: not installed"; fi
+          if command -v npm >/dev/null 2>&1; then npm --version; else echo "npm: not installed"; fi
+          if command -v python3 >/dev/null 2>&1; then python3 --version; else echo "Python: not installed"; fi
+          echo
+          echo "=== Resources ==="
+          df -h
+          if command -v free >/dev/null 2>&1; then free -h; fi
+          echo
+          echo "=== Result ==="
+          echo "The GitHub Actions job executed on the connected self-hosted Android runner."
