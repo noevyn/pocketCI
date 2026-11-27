@@ -38,9 +38,9 @@ async function replaceOnce(relativePath, before, after) {
 async function replaceRegexOnce(relativePath, pattern, replacement) {
   const file = path.join(upstream, relativePath);
   const source = await readFile(file, "utf8");
-  const matches = [...source.matchAll(pattern)];
-  if (matches.length !== 1) {
-    throw new Error(`${relativePath}: expected one regex match, found ${matches.length}`);
+  const count = countMatches(source, pattern);
+  if (count !== 1) {
+    throw new Error(`${relativePath}: expected one regex match, found ${count}`);
   }
   await writeFile(file, source.replace(pattern, replacement));
 }
@@ -286,6 +286,7 @@ await replaceOnce(
     "internal fun sourceOffer(versionName: String, prootCommit: String, gitCommit: String, projectUrl: String = PROJECT_URL): SourceOffer {",
   );
   source = source
+    .replaceAll("droidrunner-", "pocketci-")
     .replaceAll("droidrunner-$tag-source.tar.gz", "pocketci-$tag-source.tar.gz")
     .replaceAll("droidrunner-<tag>-source.tar.gz", "pocketci-<tag>-source.tar.gz")
     .replaceAll("$PROJECT_URL/releases/download/$tag/$archive", "$projectUrl/releases/download/$tag/$archive")
