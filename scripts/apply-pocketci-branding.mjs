@@ -17,6 +17,14 @@ if (actualRevision !== expectedRevision) {
   );
 }
 
+function countMatches(source, pattern) {
+  const globalPattern = new RegExp(
+    pattern.source,
+    pattern.flags.includes("g") ? pattern.flags : pattern.flags + "g",
+  );
+  return source.match(globalPattern)?.length ?? 0;
+}
+
 async function replaceOnce(relativePath, before, after) {
   const file = path.join(upstream, relativePath);
   const source = await readFile(file, "utf8");
@@ -96,7 +104,7 @@ await replaceOnce(
     ],
   ];
   for (const [pattern, replacement] of mappings) {
-    if ([...source.matchAll(pattern)].length !== 1) {
+    if (countMatches(source, pattern) !== 1) {
       throw new Error(`gradle.properties: expected exactly one ${pattern}`);
     }
     source = source.replace(pattern, replacement);
@@ -294,7 +302,7 @@ await replaceOnce(
   const file = path.join(upstream, "app/src/test/java/io/github/m96chan/droidrunner/ui/SourceOfferTest.kt");
   let source = await readFile(file, "utf8");
   source = source
-    .replaceAll("droidrunner-v", "pocketci-v")
+    .replaceAll("droidrunner-", "pocketci-")
     .replaceAll("https://github.com/m96-chan/DroidRunner/releases/download/", "https://github.com/noevyn/pocketCI/releases/download/")
     .replaceAll("https://github.com/m96-chan/DroidRunner/tree/", "https://github.com/noevyn/pocketCI/tree/")
     .replaceAll("https://github.com/m96-chan/DroidRunner", "https://github.com/noevyn/pocketCI")
