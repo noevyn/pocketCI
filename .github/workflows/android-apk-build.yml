@@ -55,11 +55,26 @@ jobs:
             ANDROID_NDK_ROOT="$ANDROID_NDK_LATEST_HOME" \
             runtime/build-proot.sh
 
+      - name: Verify Kotlin Compose plugin repositories
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact="org/jetbrains/kotlin/plugin/compose/org.jetbrains.kotlin.plugin.compose.gradle.plugin/2.4.10/org.jetbrains.kotlin.plugin.compose.gradle.plugin-2.4.10.pom"
+          for base in "https://plugins.gradle.org/m2" "https://repo.maven.apache.org/maven2"; do
+            if curl --fail --location --silent --show-error --connect-timeout 10 --max-time 30 "$base/$artifact" -o /dev/null; then
+              echo "Kotlin Compose plugin marker reachable from $base"
+              exit 0
+            fi
+          done
+          echo "::error::Kotlin Compose plugin marker is unreachable from both configured repositories"
+          exit 1
+
       - name: Run unit tests and assemble PocketCI debug APK
         working-directory: upstream/DroidRunner
         env:
           POCKETCI_GITHUB_APP_CLIENT_ID: ${{ vars.POCKETCI_GITHUB_APP_CLIENT_ID }}
           POCKETCI_GITHUB_APP_SLUG: ${{ vars.POCKETCI_GITHUB_APP_SLUG }}
+          GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=30000 -Dorg.gradle.internal.http.socketTimeout=30000"
         run: |
           set -o pipefail
           gradle_args=(
@@ -69,12 +84,12 @@ jobs:
             "-Ppocketci.sourceCommit=$GITHUB_SHA"
           )
           log_file="$RUNNER_TEMP/pocketci-gradle-build.log"
-          if ./gradlew --no-daemon --stacktrace "${gradle_args[@]}" testDebugUnitTest assembleDebug 2>&1 | tee "$log_file"; then
+          if timeout 15m ./gradlew --no-daemon --stacktrace "${gradle_args[@]}" testDebugUnitTest assembleDebug 2>&1 | tee "$log_file"; then
             exit 0
           fi
           if grep -q "Plugin .* was not found" "$log_file"; then
             echo "A Gradle plugin could not be resolved; retrying once with refreshed dependency metadata."
-            ./gradlew --no-daemon --refresh-dependencies --stacktrace "${gradle_args[@]}" testDebugUnitTest assembleDebug
+            timeout 15m ./gradlew --no-daemon --refresh-dependencies --stacktrace "${gradle_args[@]}" testDebugUnitTest assembleDebug
           else
             exit 1
           fi
