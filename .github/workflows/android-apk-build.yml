@@ -42,7 +42,18 @@ jobs:
 
       - name: Build PRoot native libraries
         working-directory: upstream/DroidRunner
-        run: ANDROID_NDK_ROOT="$ANDROID_NDK_LATEST_HOME" runtime/build-proot.sh
+        run: |
+          cat > "$RUNNER_TEMP/wgetrc" <<'EOF'
+          timeout = 25
+          tries = 1
+          waitretry = 0
+          dns_timeout = 10
+          read_timeout = 25
+          EOF
+          timeout 10m env \
+            WGETRC="$RUNNER_TEMP/wgetrc" \
+            ANDROID_NDK_ROOT="$ANDROID_NDK_LATEST_HOME" \
+            runtime/build-proot.sh
 
       - name: Run unit tests and assemble PocketCI debug APK
         working-directory: upstream/DroidRunner
