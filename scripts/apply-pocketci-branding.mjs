@@ -267,7 +267,7 @@ await replaceOnce(
   );
   source = source.replace(
     '            Link("proot source") { open("$PROOT_URL/tree/${BuildConfig.PROOT_COMMIT}") }',
-    '            Link("proot source") { open("$PROOT_URL/tree/${BuildConfig.PROOT_COMMIT}") }\\n            Link("upstream source") { open("$UPSTREAM_URL/tree/${BuildConfig.GIT_COMMIT}") }',
+    '            Link("proot source") { open("$PROOT_URL/tree/${BuildConfig.PROOT_COMMIT}") }\n            Link("upstream source") { open("$UPSTREAM_URL/tree/${BuildConfig.GIT_COMMIT}") }',
   );
   source = source.replace(
     '            Link("report an issue") { open("$PROJECT_URL/issues/new") }',
