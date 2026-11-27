@@ -25,7 +25,7 @@ PocketCI pins [DroidRunner](https://github.com/m96-chan/DroidRunner) as a Git su
 - [ ] Complete the Atlas CI profile's read-only private-repository access setup.
 - [ ] Implement the authenticated assistant-to-runner control bridge.
 
-**Latest successful PocketCI debug build:** [Run #46067595848](https://github.com/noevyn/pocketCI/actions/runs/46067595848). The [debug APK artifact](https://github.com/noevyn/pocketCI/actions/runs/46067595848/artifacts/15231198521) is retained for seven days.
+**Latest successful PocketCI debug build:** [Run #46067595848](https://github.com/noevyn/pocketCI/actions/runs/46067595848). The [debug APK artifact](https://github.com/noevyn/pocketCI/actions/runs/46067595848/artifacts/15232775295) is retained for seven days.
 
 The APK is debug-signed and intended for isolated testing, not public release. It uses its own package ID, so it can be installed alongside the upstream DroidRunner app without replacing it. Do not treat the current build as connected until the PocketCI GitHub App is configured; see [GitHub App setup](docs/GITHUB_APP_SETUP.md).
 
